@@ -754,24 +754,34 @@ export default function NihonkabuDrill() {
       try {
         const mod = await import("html2canvas");
         const html2canvas = mod.default || mod;
+        if (typeof html2canvas !== "function") {
+          alert("html2canvas load error: type=" + typeof html2canvas);
+          setSaving(false);
+          return;
+        }
         const canvas = await html2canvas(shareCardRef.current, {
           backgroundColor: "#0d1117", scale: 2, useCORS: true, logging: false,
         });
         const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
+        if (!blob) {
+          alert("blob generation failed");
+          setSaving(false);
+          return;
+        }
         const file = new File([blob], "nihonkabu-drill-result.png", { type: "image/png" });
-
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        const canShare = navigator.share && navigator.canShare && navigator.canShare({ files: [file] });
+        if (canShare) {
           try {
             await navigator.share({ text: tweetText, files: [file] });
           } catch (e) {
-            // キャンセルでも何もしない
+            // キャンセル
           }
         } else {
-          // Web Share非対応 → Xを直接開く
+          alert("Web Share not supported: share=" + !!navigator.share + " canShare=" + !!navigator.canShare);
           window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
         }
       } catch (e) {
-        console.error("share failed:", e);
+        alert("Error: " + e.message);
         window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
       }
       setSaving(false);
