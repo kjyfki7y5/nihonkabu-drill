@@ -748,41 +748,29 @@ export default function NihonkabuDrill() {
 
     const tweetText = `【日本株ドリル】\nScore: ${score}/${maxS} (${pct}%) | Rank: ${rank.label}\n${hist.map(h => h.ok ? "🟩" : "🟥").join("")}\n#日本株ドリル #株クラ`;
 
-    const handleSaveImage = async () => {
+    const handleShare = async () => {
       if (!shareCardRef.current || saving) return;
       setSaving(true);
       try {
         const mod = await import("html2canvas");
         const html2canvas = mod.default || mod;
         const canvas = await html2canvas(shareCardRef.current, {
-          backgroundColor: "#0d1117",
-          scale: 2,
-          useCORS: true,
-          logging: false,
+          backgroundColor: "#0d1117", scale: 2, useCORS: true, logging: false,
         });
-
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
         const file = new File([blob], "nihonkabu-drill-result.png", { type: "image/png" });
 
-        // Web Share API（スマホ向け）
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ text: tweetText, files: [file] });
-          } catch (e) {
-            // ユーザーがキャンセルした場合 → Xを開く
-            if (e.name !== "AbortError") {
-              window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
-            }
-          }
-        } else {
-          // Web Share未対応 → テキストのみでXを開く
-          window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
+          await navigator.share({ text: tweetText, files: [file] });
+          setSaving(false);
+          return;
         }
       } catch (e) {
-        console.error("Share error:", e);
-        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
+        console.error("share failed:", e);
       }
+      // 画像共有できなかった場合 → テキストでXを開く
       setSaving(false);
+      window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
     };
 
     return (
@@ -888,7 +876,7 @@ export default function NihonkabuDrill() {
 
           {/* Share button */}
           <div style={{ marginTop: 12 }}>
-            <button onClick={handleSaveImage} disabled={saving} style={{
+            <button onClick={handleShare} disabled={saving} style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               width: "100%", padding: "14px", borderRadius: 8, cursor: saving ? "wait" : "pointer",
               background: "#fff", border: "none",
