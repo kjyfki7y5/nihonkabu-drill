@@ -749,7 +749,8 @@ export default function NihonkabuDrill() {
     const tweetText = `【日本株ドリル】\nScore: ${score}/${maxS} (${pct}%) | Rank: ${rank.label}\n${hist.map(h => h.ok ? "🟩" : "🟥").join("")}\n#日本株ドリル #株クラ`;
 
     const handleShare = async () => {
-      if (!shareCardRef.current) return;
+      alert("1: start, ref=" + !!shareCardRef.current + " saving=" + saving);
+      if (!shareCardRef.current) { alert("ref is null"); setSaving(false); return; }
       setSaving(true);
       try {
         const mod = await import("html2canvas");
