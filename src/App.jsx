@@ -752,7 +752,8 @@ export default function NihonkabuDrill() {
       if (!shareCardRef.current || saving) return;
       setSaving(true);
       try {
-        const html2canvas = (await import("html2canvas")).default;
+        const mod = await import("html2canvas");
+        const html2canvas = mod.default || mod;
         const canvas = await html2canvas(shareCardRef.current, {
           backgroundColor: "#0d1117",
           scale: 2,
@@ -760,21 +761,28 @@ export default function NihonkabuDrill() {
           logging: false,
         });
 
-        canvas.toBlob(async (blob) => {
-          const file = new File([blob], "nihonkabu-drill-result.png", { type: "image/png" });
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        const file = new File([blob], "nihonkabu-drill-result.png", { type: "image/png" });
+
+        // Web Share API（スマホ向け）
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({ text: tweetText, files: [file] });
           } catch (e) {
-            // ユーザーがキャンセル
+            // ユーザーがキャンセルした場合 → Xを開く
+            if (e.name !== "AbortError") {
+              window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
+            }
           }
-          setSaving(false);
-        }, "image/png");
+        } else {
+          // Web Share未対応 → テキストのみでXを開く
+          window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
+        }
       } catch (e) {
-        console.error(e);
-        // フォールバック: テキストのみ
+        console.error("Share error:", e);
         window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
-        setSaving(false);
       }
+      setSaving(false);
     };
 
     return (
