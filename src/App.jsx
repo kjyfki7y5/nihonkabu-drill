@@ -751,20 +751,15 @@ export default function NihonkabuDrill() {
     const handleShare = async () => {
       setSaving(true);
       try {
-        alert("2: importing html2canvas");
         const mod = await import("html2canvas");
         const html2canvas = mod.default || mod;
-        alert("3: loaded, type=" + typeof html2canvas);
         const canvas = await html2canvas(shareCardRef.current, {
           backgroundColor: "#0d1117", scale: 2, useCORS: true, logging: false,
         });
-        alert("4: canvas done");
         const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
-        alert("5: blob done, size=" + (blob ? blob.size : "null"));
         const file = new File([blob], "nihonkabu-drill-result.png", { type: "image/png" });
-        const canShare = navigator.share && navigator.canShare && navigator.canShare({ files: [file] });
-        alert("6: canShare=" + canShare);
-        if (canShare) {
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({ text: tweetText, files: [file] });
           } catch (e) {
@@ -774,7 +769,6 @@ export default function NihonkabuDrill() {
           window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
         }
       } catch (e) {
-        alert("ERROR: " + e.message);
         window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
       }
       setSaving(false);
