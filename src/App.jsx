@@ -749,7 +749,7 @@ export default function NihonkabuDrill() {
     const tweetText = `【日本株ドリル】\nScore: ${score}/${maxS} (${pct}%) | Rank: ${rank.label}\n${hist.map(h => h.ok ? "🟩" : "🟥").join("")}\n#日本株ドリル #株クラ`;
 
     const handleShare = async () => {
-      if (!shareCardRef.current || saving) return;
+      if (!shareCardRef.current) return;
       setSaving(true);
       try {
         const mod = await import("html2canvas");
@@ -761,16 +761,20 @@ export default function NihonkabuDrill() {
         const file = new File([blob], "nihonkabu-drill-result.png", { type: "image/png" });
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ text: tweetText, files: [file] });
-          setSaving(false);
-          return;
+          try {
+            await navigator.share({ text: tweetText, files: [file] });
+          } catch (e) {
+            // キャンセルでも何もしない
+          }
+        } else {
+          // Web Share非対応 → Xを直接開く
+          window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
         }
       } catch (e) {
         console.error("share failed:", e);
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
       }
-      // 画像共有できなかった場合 → テキストでXを開く
       setSaving(false);
-      window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
     };
 
     return (
@@ -885,7 +889,7 @@ export default function NihonkabuDrill() {
               opacity: saving ? 0.6 : 1,
               transition: "opacity 0.15s ease",
             }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              {!saving && <svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>}
               {saving ? "画像を生成中..." : "結果をポストする"}
             </button>
           </div>
