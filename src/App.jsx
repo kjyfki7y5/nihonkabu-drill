@@ -779,41 +779,6 @@ export default function NihonkabuDrill() {
       }
       setSaving(false);
     };
-      try {
-        const mod = await import("html2canvas");
-        const html2canvas = mod.default || mod;
-        if (typeof html2canvas !== "function") {
-          alert("html2canvas load error: type=" + typeof html2canvas);
-          setSaving(false);
-          return;
-        }
-        const canvas = await html2canvas(shareCardRef.current, {
-          backgroundColor: "#0d1117", scale: 2, useCORS: true, logging: false,
-        });
-        const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
-        if (!blob) {
-          alert("blob generation failed");
-          setSaving(false);
-          return;
-        }
-        const file = new File([blob], "nihonkabu-drill-result.png", { type: "image/png" });
-        const canShare = navigator.share && navigator.canShare && navigator.canShare({ files: [file] });
-        if (canShare) {
-          try {
-            await navigator.share({ text: tweetText, files: [file] });
-          } catch (e) {
-            // キャンセル
-          }
-        } else {
-          alert("Web Share not supported: share=" + !!navigator.share + " canShare=" + !!navigator.canShare);
-          window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
-        }
-      } catch (e) {
-        alert("Error: " + e.message);
-        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, "_blank");
-      }
-      setSaving(false);
-    };
 
     return (
       <div style={base}>
@@ -918,13 +883,6 @@ export default function NihonkabuDrill() {
 
           {/* Share button */}
           <div style={{ marginTop: 12 }}>
-            <button onClick={() => alert("ボタンテスト OK")} style={{
-              width: "100%", padding: "14px", borderRadius: 8, marginBottom: 8,
-              background: "#f0b90b", border: "none", color: "#000", fontFamily: V.font,
-              fontSize: 14, fontWeight: 700,
-            }}>
-              テスト（タップして）
-            </button>
             <button onClick={handleShare} style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               width: "100%", padding: "14px", borderRadius: 8, cursor: saving ? "wait" : "pointer",
