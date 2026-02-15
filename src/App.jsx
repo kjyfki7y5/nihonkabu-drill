@@ -891,7 +891,14 @@ export default function NihonkabuDrill() {
 
           {/* Share button */}
           <div style={{ marginTop: 12 }}>
-            <button onClick={handleShare} disabled={saving} style={{
+            <button onClick={() => alert("ボタンテスト OK")} style={{
+              width: "100%", padding: "14px", borderRadius: 8, marginBottom: 8,
+              background: "#f0b90b", border: "none", color: "#000", fontFamily: V.font,
+              fontSize: 14, fontWeight: 700,
+            }}>
+              テスト（タップして）
+            </button>
+            <button onClick={handleShare} style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               width: "100%", padding: "14px", borderRadius: 8, cursor: saving ? "wait" : "pointer",
               background: "#fff", border: "none",
